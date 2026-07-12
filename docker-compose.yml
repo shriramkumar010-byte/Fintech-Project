@@ -1,0 +1,141 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fintech-app
+    restart: unless-stopped
+    working_dir: /var/www
+
+    volumes:
+      - .:/var/www
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: fintech
+      DB_USERNAME: fintech
+      DB_PASSWORD: fintech123
+
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    command: >
+      sh -c '
+      if [ ! -f .env ]; then
+        cp .env.example .env;
+      fi;
+
+      composer install --no-interaction --prefer-dist --optimize-autoloader;
+
+      php artisan key:generate --force || true;
+      php artisan storage:link || true;
+      php artisan optimize:clear || true;
+      php artisan vendor:publish --provider="Spatie\\Permission\\PermissionServiceProvider" --force || true;
+      php artisan notifications:table || true;
+      php artisan queue:table || true;
+      php artisan cache:table || true;
+      php artisan session:table || true;
+      php artisan migrate --force || true;
+      php artisan shield:generate --all || true;
+      php artisan shield:super-admin --user=1 --panel=admin || true;
+      php artisan db:seed --force || true;
+      php artisan serve --host=0.0.0.0 --port=8000
+      '
+
+  vite:
+    image: node:20-alpine
+    container_name: fintech-vite
+    working_dir: /var/www
+
+    volumes:
+      - .:/var/www
+
+    ports:
+      - "5173:5173"
+
+    command: >
+      sh -c "
+      npm install &&
+      npm run dev -- --host 0.0.0.0 --port 5173
+      "
+
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: fintech-db
+    restart: unless-stopped
+
+    ports:
+      - "3307:3306"
+
+    environment:
+      MYSQL_DATABASE: fintech
+      MYSQL_USER: fintech
+      MYSQL_PASSWORD: fintech123
+      MYSQL_ROOT_PASSWORD: root123
+
+    volumes:
+      - db_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: fintech-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: fintech-phpmyadmin
+    restart: unless-stopped
+
+    depends_on:
+      - db
+
+    ports:
+      - "8080:80"
+
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root123
+      UPLOAD_LIMIT: 256M
+
+volumes:
+  db_data:
+  redis_data:
