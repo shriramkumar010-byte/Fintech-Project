@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'cibil' => [
+        'endpoint' => env('CIBIL_API_ENDPOINT', 'https://api.cibil.com/v1/reports'),
+        'api_key' => env('CIBIL_API_KEY'),
+        'timeout' => env('CIBIL_API_TIMEOUT', 30),
+        'retry_attempts' => env('CIBIL_API_RETRY_ATTEMPTS', 3),
+        'retry_delay' => env('CIBIL_API_RETRY_DELAY', 1000), // milliseconds
+    ],
+
+    'aadhaar' => [
+        'api_key' => env('AADHAAR_API_KEY'),
+        'endpoint' => env('AADHAAR_API_ENDPOINT', 'https://kyc-api.surepass.io/api/v1/aadhaar-validation/aadhaar-validation'),
+        'timeout' => env('AADHAAR_API_TIMEOUT', 30),
+        'environment' => env('AADHAAR_API_ENV', 'test'),
+    ],
+
 ];
