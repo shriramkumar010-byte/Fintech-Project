@@ -44,7 +44,13 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('email'),
-                // ...
+                Tables\Columns\TextColumn::make('roles')
+                    ->label('Role')
+                    ->getStateUsing(function (User $record): string {
+                        $roles = $record->roles()->pluck('name');
+
+                        return $roles->isNotEmpty() ? $roles->implode(', ') : 'NA';
+                    }),
             ])
             ->filters([
                 //
