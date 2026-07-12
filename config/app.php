@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Capsafe Fintech'),
 
     /*
     |--------------------------------------------------------------------------
@@ -100,7 +100,7 @@ return [
     'key' => env('APP_KEY'),
 
     'previous_keys' => [
-        array_filter(
+        ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
