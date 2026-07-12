@@ -1,0 +1,17 @@
+node_modules
+vendor
+.git
+.gitignore
+.env
+.env.*
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+public/build
+coverage
+.vscode
+.idea
+Dockerfile*
+docker-compose*.yml
+README.md
